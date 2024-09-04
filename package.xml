@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>ocam</name>
+  <version>0.0.1</version>
+  <description>The oCam-1CGN-U package</description>
+
+  <maintainer email="dave.park@withrobot.com">Sangwoo Park</maintainer>
+  <license>BSD</license>
+
+  <author email="dave.park@withrobot.com">Sangwoo Park</author>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>cv_bridge</depend>
+  <depend>image_transport</depend>
+  <depend>camera_info_manager</depend>
+  <depend>OpenCV</depend>
+  <depend>Boost</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
