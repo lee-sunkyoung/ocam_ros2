@@ -39,7 +39,7 @@
 #include <stdio.h>
 
 #include "withrobot_utility.hpp"
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.h>
 
 
 #define WITHROBOT_CAMERA_DEFAULT_WIDTH     640
