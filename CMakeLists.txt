@@ -1,10 +1,17 @@
 cmake_minimum_required(VERSION 3.5)
 project(ocam)
 
+# Other configurations (target, dependencies, etc.)
+
 # Use C++11 standard
 add_definitions(-std=c++11)
+# Use C++14 standard
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 
 # Find dependencies
+#find_package(rosidl_default_generators REQUIRED)
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -15,7 +22,7 @@ find_package(camera_info_manager REQUIRED)
 #find_package(dynamic_reconfigure REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
-
+#find_package(message_package REQUIRED)
 # Include directories
 include_directories(
   include
@@ -31,7 +38,11 @@ include_directories(
 
 # Add executable
 add_executable(ocam src/oCam.cpp src/withrobot_camera.cpp src/withrobot_utility.cpp)
-ament_target_dependencies(ocam rclcpp std_msgs sensor_msgs cv_bridge image_transport camera_info_manager OpenCV Boost)
+ament_target_dependencies(ocam rclcpp camera_info_manager std_msgs sensor_msgs cv_bridge image_transport OpenCV Boost)
+
+# Install the node
+install(TARGETS ocam
+  DESTINATION lib/${PROJECT_NAME})
 
 # Link libraries
 target_link_libraries(ocam

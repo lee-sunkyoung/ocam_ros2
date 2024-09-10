@@ -10,6 +10,7 @@
   <author email="dave.park@withrobot.com">Sangwoo Park</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+<depend>message_package</depend>
 
   <depend>rclcpp</depend>
   <depend>std_msgs</depend>
