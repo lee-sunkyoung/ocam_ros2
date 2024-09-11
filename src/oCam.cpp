@@ -134,9 +134,8 @@ public:
 class oCamROS : public rclcpp::Node {
 
 public:
- std::string node_name = "ocam_ros";
+  oCamROS() : rclcpp::Node("ocam_ros") {
 
-  oCamROS() : Node(node_name),node_(std::make_shared<rclcpp::Node>("ocam_ros")){
     /* default parameters */
     resolution_ = 2;
     frame_rate_ = 30.0;
@@ -170,21 +169,26 @@ public:
     this->get_parameter("auto_exposure", autoexposure_);
 
     /* initialize the camera */
+    RCLCPP_INFO(this->get_logger(), "%f,%f", resolution_, frame_rate_);
+
     ocam = std::make_shared<Camera>(resolution_, frame_rate_);
     ocam->uvc_control(exposure_, gain_, wb_blue_, wb_red_, autoexposure_);
     RCLCPP_INFO(this->get_logger(), "Initialized the camera");
 
-    // Initialize image transport
-    image_transport::ImageTransport it(shared_from_this());
-    camera_image_pub_ = it.advertise("camera/image_raw", 1);
-
-    camera_info_pub_ = this->create_publisher<sensor_msgs::msg::CameraInfo>(
-        "camera/camera_info", 1);
+    // CameraInfoManager 초기화
     info_manager_ = std::make_shared<camera_info_manager::CameraInfoManager>(
-        node_.get(), "camera", "package://ocam/config/camera.yaml");
+        this, "camera", "package://ocam/config/camera.yaml");
+    RCLCPP_INFO(this->get_logger(), "Camera info manager initialized");
 
     // Start device poll in a separate thread
     std::thread(&oCamROS::device_poll, this).detach();
+  }
+
+  void init_image_transport() {
+    image_transport::ImageTransport it(shared_from_this());
+    camera_image_pub_ = it.advertise("camera/image_raw", 1);
+    camera_info_pub_ = this->create_publisher<sensor_msgs::msg::CameraInfo>(
+        "camera/camera_info", 1);
   }
 
   ~oCamROS() {
@@ -192,15 +196,13 @@ public:
   }
 
 private:
-
-    std::shared_ptr<rclcpp::Node> node_;
-
+  std::shared_ptr<rclcpp::Node> Node;
   int resolution_;
   double frame_rate_;
   int exposure_, gain_, wb_blue_, wb_red_;
   bool autoexposure_;
   bool show_image_;
-  bool config_changed_; // 이거 쓰이는데가 없는데..?
+  bool config_changed_;
 
   rclcpp::TimerBase::SharedPtr timer_;
 
@@ -266,6 +268,7 @@ private:
 int main(int argc, char **argv) {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<oCamROS>();
+  node->init_image_transport();
   rclcpp::spin(node);
   rclcpp::shutdown();
   return 0;

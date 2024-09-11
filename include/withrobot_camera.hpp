@@ -225,7 +225,7 @@ private:
   };
 
   std::string dev_name;
- std::string node_name = "camera_node";
+//  std::string node_name = "camera_node";
 //std::shared_ptr<rclcpp::Node> node_;
  
   //std::shared_ptr<camera_info_manager::CameraInfoManager> info_manager_;

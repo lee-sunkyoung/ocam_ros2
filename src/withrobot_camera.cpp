@@ -41,8 +41,9 @@ using namespace Withrobot;
  */
 Camera::Camera(const char *dev_name, struct camera_format *conf,
                const char *format_string, const unsigned char disable_libv4l2)
-    : Node(node_name), dev_name(dev_name), disable_libv4l2(disable_libv4l2),
+    : rclcpp::Node("camera_node"), dev_name(dev_name), disable_libv4l2(disable_libv4l2),
       streaming(false) {
+
   // ROS 2 parameter setup
   this->declare_parameter<int>(
       "camera_width", static_cast<int>(WITHROBOT_CAMERA_DEFAULT_WIDTH));
@@ -65,8 +66,8 @@ Camera::Camera(const char *dev_name, struct camera_format *conf,
     exit(EXIT_FAILURE);
   } else {
     DBG_PRINTF("Device \"%s\" is opened.", dev_name);
-  }
 
+  }
   /*
    * Initialize
    */

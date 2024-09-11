@@ -9,7 +9,6 @@ add_definitions(-std=c++11)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-
 # Find dependencies
 #find_package(rosidl_default_generators REQUIRED)
 find_package(ament_cmake REQUIRED)
