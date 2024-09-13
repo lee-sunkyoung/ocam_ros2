@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>ocam</name>
+  <name>ocam_ros2</name>
   <version>0.0.1</version>
   <description>The oCam-1CGN-U package</description>
 
-  <maintainer email="dave.park@withrobot.com">Sangwoo Park</maintainer>
+  <maintainer email="ardcxvsk@gmail.com">lee-sunkyoung</maintainer>
   <license>BSD</license>
 
   <author email="dave.park@withrobot.com">Sangwoo Park</author>

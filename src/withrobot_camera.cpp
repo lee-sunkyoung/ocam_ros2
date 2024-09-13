@@ -41,21 +41,12 @@ using namespace Withrobot;
  */
 Camera::Camera(const char *dev_name, struct camera_format *conf,
                const char *format_string, const unsigned char disable_libv4l2)
-    : rclcpp::Node("camera_node"), dev_name(dev_name), disable_libv4l2(disable_libv4l2),
-      streaming(false) {
-
-  // ROS 2 parameter setup
-  this->declare_parameter<int>(
-      "camera_width", static_cast<int>(WITHROBOT_CAMERA_DEFAULT_WIDTH));
-  this->declare_parameter<int>(
-      "camera_height", static_cast<int>(WITHROBOT_CAMERA_DEFAULT_HEIGHT));
-  this->declare_parameter<int>(
-      "camera_pixformat", static_cast<int>(WITHROBOT_CAMERA_DEFAULT_FIXFORMAT));
+    : dev_name(dev_name), disable_libv4l2(disable_libv4l2), streaming(false) {
 
   // Configuration from parameters
-  config.width = this->get_parameter("camera_width").as_int();
-  config.height = this->get_parameter("camera_height").as_int();
-  config.pixformat = this->get_parameter("camera_pixformat").as_int();
+  config.width = 640;
+  config.height = 480;
+  config.pixformat = V4L2_PIX_FMT_YUYV;
 
   // Initialize other camera resources here
 
@@ -66,7 +57,6 @@ Camera::Camera(const char *dev_name, struct camera_format *conf,
     exit(EXIT_FAILURE);
   } else {
     DBG_PRINTF("Device \"%s\" is opened.", dev_name);
-
   }
   /*
    * Initialize
@@ -149,6 +139,7 @@ void Camera::get_configurations(std::vector<std::string> &formats,
 
   controls.clear();
   DBG_PRINTF("Supported controls:");
+
   for (auto it = valid_control_list.begin(); it != valid_control_list.end();
        ++it) {
     controls.push_back(it->first);
@@ -647,6 +638,7 @@ int Camera::valid_controls(
       list.push_back(std::pair<const char *, unsigned int>(it->first.c_str(),
                                                            it->second.type));
     }
+
   } catch (...) {
     DBG_PERROR("--error-- valid_control_list");
     return -1;
@@ -755,12 +747,29 @@ int Camera::get_control(const char *name) {
 bool Camera::set_control(const char *name, const int value) {
   std::map<std::string, v4l2_queryctrl>::iterator it =
       valid_control_list.find(name);
+
+  // for (const auto &pair : valid_control_list) {
+  //   std::cout << "Key: " << pair.first << std::endl;
+
+  //   std::cout << "ID: " << pair.second.id << std::endl;
+  //   std::cout << "Type: " << pair.second.type << std::endl;
+  //   std::cout << "Name: " << pair.second.name << std::endl;
+  //   std::cout << "Minimum: " << pair.second.minimum << std::endl;
+  //   std::cout << "Maximum: " << pair.second.maximum << std::endl;
+  //   std::cout << "Step: " << pair.second.step << std::endl;
+  //   std::cout << "Default: " << pair.second.default_value << std::endl;
+  //   std::cout << "Flags: " << pair.second.flags << std::endl;
+  //   std::cout << "-----------------------------------" << std::endl;
+  // }
+
   if (it == valid_control_list.end()) {
-    return false;
+    // std::cout<<"////"<<name<<"/////"<<value<<"////";
+    // return false;
   }
 
   struct v4l2_control control;
   memset(&control, 0, sizeof(control));
+  // std::cout<<"////"<<name<<"/////"<<value<<"////";
 
   control.id = it->second.id;
   control.value = value;

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(ocam)
+project(ocam_ros2)
 
 # Other configurations (target, dependencies, etc.)
 
@@ -36,15 +36,15 @@ include_directories(
 )
 
 # Add executable
-add_executable(ocam src/oCam.cpp src/withrobot_camera.cpp src/withrobot_utility.cpp)
-ament_target_dependencies(ocam rclcpp camera_info_manager std_msgs sensor_msgs cv_bridge image_transport OpenCV Boost)
+add_executable(ocam_ros2 src/oCam.cpp src/withrobot_camera.cpp src/withrobot_utility.cpp)
+ament_target_dependencies(ocam_ros2 rclcpp camera_info_manager std_msgs sensor_msgs cv_bridge image_transport OpenCV Boost)
 
 # Install the node
-install(TARGETS ocam
+install(TARGETS ocam_ros2
   DESTINATION lib/${PROJECT_NAME})
 
 # Link libraries
-target_link_libraries(ocam
+target_link_libraries(ocam_ros2
   ${rclcpp_LIBRARIES}
   ${sensor_msgs_LIBRARIES}
   ${std_msgs_LIBRARIES}
@@ -58,7 +58,7 @@ target_link_libraries(ocam
 )
 
 # Install executable
-install(TARGETS ocam
+install(TARGETS ocam_ros2
   DESTINATION lib/${PROJECT_NAME}
 )
 

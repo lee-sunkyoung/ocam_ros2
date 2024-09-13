@@ -12,7 +12,7 @@
 
 #include "withrobot_camera.hpp"
 
-class Camera {
+class Camera_ocam {
   Withrobot::Camera *camera;
   Withrobot::camera_format camFormat;
 
@@ -22,7 +22,7 @@ private:
   std::string devPath_;
 
 public:
-  Camera(int resolution, double frame_rate) : camera(NULL) {
+  Camera_ocam(int resolution, double frame_rate) : camera(NULL) {
 
     enum_dev_list();
 
@@ -60,7 +60,7 @@ public:
     camera->start();
   }
 
-  ~Camera() {
+  ~Camera_ocam() {
     camera->stop();
     delete camera;
   }
@@ -95,31 +95,33 @@ public:
 
   void uvc_control(int exposure, int gain, int blue, int red, bool ae) {
     /* Exposure Setting */
-    camera->set_control("Exposure (Absolute)", exposure);
+    std::cout << "uvc control\n";
+
+    camera->set_control("Exposure Time, Absolute", exposure);
 
     /* Gain Setting */
     camera->set_control("Gain", gain);
 
     /* White Balance Setting */
-    camera->set_control("White Balance Blue Component", blue);
-    camera->set_control("White Balance Red Component", red);
+    camera->set_control("Blue Balance", blue);
+    camera->set_control("Red Balance", red);
 
     /* Auto Exposure Setting */
-    if (ae)
-      camera->set_control("Exposure, Auto", 0x3);
-    else
-      camera->set_control("Exposure, Auto", 0x1);
+    if (ae) { // camera->set_control("Exposure Time, Absolute", 0x3);
+    } else {  // camera->set_control("Exposure Time, Absolute", 0x1);
+    }
   }
 
   bool getImages(cv::Mat &image) {
 
     cv::Mat srcImg(cv::Size(camFormat.width, camFormat.height), CV_8UC1);
-    cv::Mat dstImg;
+    cv::Mat dstImg(srcImg.size(), CV_8UC3);
 
     if (camera->get_frame(srcImg.data, camFormat.image_size, 1) != -1) {
       cvtColor(srcImg, dstImg, cv::COLOR_BayerGR2RGB);
       image = dstImg;
-
+      cv::imshow("Raw Image", srcImg);
+      cv::imshow("Converted Image", dstImg);
       return true;
     } else {
       return false;
@@ -141,8 +143,8 @@ public:
     frame_rate_ = 30.0;
     exposure_ = 100;
     gain_ = 150;
-    wb_blue_ = 200;
-    wb_red_ = 160;
+    wb_blue_ = 1;
+    wb_red_ = 1;
     autoexposure_ = false;
     camera_frame_id_ = "camera";
     show_image_ = true;
@@ -169,15 +171,17 @@ public:
     this->get_parameter("auto_exposure", autoexposure_);
 
     /* initialize the camera */
-    RCLCPP_INFO(this->get_logger(), "%f,%f", resolution_, frame_rate_);
+    RCLCPP_INFO(this->get_logger(), "%d,%d", wb_blue_, wb_red_);
 
-    ocam = std::make_shared<Camera>(resolution_, frame_rate_);
+    this->ocam = std::make_shared<Camera_ocam>(resolution_, frame_rate_);
+
     ocam->uvc_control(exposure_, gain_, wb_blue_, wb_red_, autoexposure_);
+
     RCLCPP_INFO(this->get_logger(), "Initialized the camera");
 
     // CameraInfoManager 초기화
     info_manager_ = std::make_shared<camera_info_manager::CameraInfoManager>(
-        this, "camera", "package://ocam/config/camera.yaml");
+        this, "camera", "package://ocam_ros2/config/camera.yaml");
     RCLCPP_INFO(this->get_logger(), "Camera info manager initialized");
 
     // Start device poll in a separate thread
@@ -225,7 +229,7 @@ private:
   std::shared_ptr<camera_info_manager::CameraInfoManager> info_manager_;
 
   std::string camera_frame_id_;
-  std::shared_ptr<Camera> ocam;
+  std::shared_ptr<Camera_ocam> ocam;
 
   void device_poll() {
     // Setup camera info
@@ -237,7 +241,6 @@ private:
 
     while (rclcpp::ok()) {
       auto now = this->now();
-
       if (!ocam->getImages(camera_image)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         continue;
@@ -248,15 +251,20 @@ private:
       }
 
       if (camera_image_pub_.getNumSubscribers() > 0) {
+        RCLCPP_INFO(this->get_logger(), "camera_frame");
         publishImage(camera_image, "camera_frame", now);
       }
 
       if (camera_info_pub_->get_subscription_count() > 0) {
+        RCLCPP_INFO(this->get_logger(), "camera_info");
+
         publishCamInfo(camera_info, now);
       }
 
       if (show_image_) {
-        cv::imshow("image", camera_image);
+        // RCLCPP_INFO(this->get_logger(), "image");
+
+        // cv::imshow("image", camera_image);
         cv::waitKey(10);
       }
 

@@ -161,10 +161,10 @@ struct camera_control {
   }
 };
 
-class Camera : public rclcpp::Node {
+class Camera {
 public:
   Camera(const char *dev_name, struct camera_format *conf = nullptr,
-         const char *format_string = nullptr,
+         const char *format_string = "default",
          const unsigned char disable_libv4l2 = 0);
   ~Camera();
 
