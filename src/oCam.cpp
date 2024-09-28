@@ -120,8 +120,8 @@ public:
     if (camera->get_frame(srcImg.data, camFormat.image_size, 1) != -1) {
       cvtColor(srcImg, dstImg, cv::COLOR_BayerGR2RGB);
       image = dstImg;
-      cv::imshow("Raw Image", srcImg);
-      cv::imshow("Converted Image", dstImg);
+      // cv::imshow("Raw Image", srcImg);
+      // cv::imshow("Converted Image", dstImg);
       return true;
     } else {
       return false;
@@ -264,7 +264,7 @@ private:
       if (show_image_) {
         // RCLCPP_INFO(this->get_logger(), "image");
 
-        // cv::imshow("image", camera_image);
+        cv::imshow("image", camera_image);
         cv::waitKey(10);
       }
 
