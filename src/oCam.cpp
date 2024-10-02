@@ -12,7 +12,8 @@
 
 #include "withrobot_camera.hpp"
 
-class Camera_ocam {
+class Camera_ocam
+{
   Withrobot::Camera *camera;
   Withrobot::camera_format camFormat;
 
@@ -22,25 +23,30 @@ private:
   std::string devPath_;
 
 public:
-  Camera_ocam(int resolution, double frame_rate) : camera(NULL) {
+  Camera_ocam(int resolution, double frame_rate) : camera(NULL)
+  {
 
     enum_dev_list();
 
     camera = new Withrobot::Camera(devPath_.c_str());
 
-    if (resolution == 0) {
+    if (resolution == 0)
+    {
       width_ = 1280;
       height_ = 960;
     }
-    if (resolution == 1) {
+    if (resolution == 1)
+    {
       width_ = 1280;
       height_ = 720;
     }
-    if (resolution == 2) {
+    if (resolution == 2)
+    {
       width_ = 640;
       height_ = 480;
     }
-    if (resolution == 3) {
+    if (resolution == 3)
+    {
       width_ = 320;
       height_ = 240;
     }
@@ -60,70 +66,87 @@ public:
     camera->start();
   }
 
-  ~Camera_ocam() {
+  ~Camera_ocam()
+  {
     camera->stop();
     delete camera;
   }
 
-  void enum_dev_list() {
+  void enum_dev_list()
+  {
     /* enumerate device(UVC compatible devices) list */
     std::vector<Withrobot::usb_device_info> dev_list;
     int dev_num = Withrobot::get_usb_device_info_list(dev_list);
 
-    if (dev_num < 1) {
+    if (dev_num < 1)
+    {
       dev_list.clear();
 
       return;
     }
 
-    for (unsigned int i = 0; i < dev_list.size(); i++) {
-      if (dev_list[i].product == "oCam-1CGN-U") {
+    for (unsigned int i = 0; i < dev_list.size(); i++)
+    {
+      if (dev_list[i].product == "oCam-1CGN-U")
+      {
         devPath_ = dev_list[i].dev_node;
         return;
-      } else if (dev_list[i].product == "oCam-1CGN-U-T") {
+      }
+      else if (dev_list[i].product == "oCam-1CGN-U-T")
+      {
         devPath_ = dev_list[i].dev_node;
         return;
-      } else if (dev_list[i].product == "oCam-1MGN-U") {
+      }
+      else if (dev_list[i].product == "oCam-1MGN-U")
+      {
         devPath_ = dev_list[i].dev_node;
         return;
-      } else if (dev_list[i].product == "oCam-1MGN-U-T") {
+      }
+      else if (dev_list[i].product == "oCam-1MGN-U-T")
+      {
         devPath_ = dev_list[i].dev_node;
         return;
       }
     }
   }
 
-  void uvc_control(int exposure, int gain, int blue, int red, bool ae) {
+  void uvc_control(int exposure, int gain, int blue, int red, bool ae)
+  {
     /* Exposure Setting */
-    std::cout << "uvc control\n";
-
     camera->set_control("Exposure Time, Absolute", exposure);
 
     /* Gain Setting */
     camera->set_control("Gain", gain);
-
+    // std::cout<<blue<<" "<<red<<std::endl;
     /* White Balance Setting */
-    camera->set_control("Blue Balance", blue);
-    camera->set_control("Red Balance", red);
+    camera->set_control("White Balance Blue Component", blue);
+    camera->set_control("White Balance Red Component", red);
 
     /* Auto Exposure Setting */
-    if (ae) { // camera->set_control("Exposure Time, Absolute", 0x3);
-    } else {  // camera->set_control("Exposure Time, Absolute", 0x1);
+    if (ae)
+    { // camera->set_control("Exposure Time, Absolute", 0x3);
+    }
+    else
+    { // camera->set_control("Exposure Time, Absolute", 0x1);
     }
   }
 
-  bool getImages(cv::Mat &image) {
+  bool getImages(cv::Mat &image)
+  {
+    cv::Mat srcImg = cv::Mat(camFormat.height, camFormat.width, CV_8UC1);
+    cv::Mat dstImg = cv::Mat(camFormat.height, camFormat.width, CV_8UC3);
 
-    cv::Mat srcImg(cv::Size(camFormat.width, camFormat.height), CV_8UC1);
-    cv::Mat dstImg(srcImg.size(), CV_8UC3);
+    if (camera->get_frame(srcImg.data, camFormat.image_size, 1) != -1)
+    {
 
-    if (camera->get_frame(srcImg.data, camFormat.image_size, 1) != -1) {
       cvtColor(srcImg, dstImg, cv::COLOR_BayerGR2RGB);
       image = dstImg;
-      // cv::imshow("Raw Image", srcImg);
-      // cv::imshow("Converted Image", dstImg);
+      //cv::imshow("Raw Image", srcImg);
+      //cv::imshow("Converted Image", dstImg);
       return true;
-    } else {
+    }
+    else
+    {
       return false;
     }
   }
@@ -133,10 +156,12 @@ public:
  * @brief       the camera ros warpper class
  */
 
-class oCamROS : public rclcpp::Node {
+class oCamROS : public rclcpp::Node
+{
 
 public:
-  oCamROS() : rclcpp::Node("ocam_ros") {
+  oCamROS() : rclcpp::Node("ocam_ros")
+  {
 
     /* default parameters */
     resolution_ = 2;
@@ -188,14 +213,16 @@ public:
     std::thread(&oCamROS::device_poll, this).detach();
   }
 
-  void init_image_transport() {
+  void init_image_transport()
+  {
     image_transport::ImageTransport it(shared_from_this());
     camera_image_pub_ = it.advertise("camera/image_raw", 1);
     camera_info_pub_ = this->create_publisher<sensor_msgs::msg::CameraInfo>(
         "camera/camera_info", 1);
   }
 
-  ~oCamROS() {
+  ~oCamROS()
+  {
     // Clean up resources
   }
 
@@ -212,13 +239,15 @@ private:
 
   rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr camera_info_pub_;
   void publishCamInfo(sensor_msgs::msg::CameraInfo &cam_info_msg,
-                      rclcpp::Time now) {
+                      rclcpp::Time now)
+  {
     cam_info_msg.header.stamp = now;
     camera_info_pub_->publish(cam_info_msg);
   }
 
   image_transport::Publisher camera_image_pub_;
-  void publishImage(cv::Mat img, std::string img_frame_id, rclcpp::Time t) {
+  void publishImage(cv::Mat img, std::string img_frame_id, rclcpp::Time t)
+  {
     cv_bridge::CvImage cv_image;
     cv_image.image = img;
     cv_image.encoding = sensor_msgs::image_encodings::BGR8;
@@ -231,49 +260,56 @@ private:
   std::string camera_frame_id_;
   std::shared_ptr<Camera_ocam> ocam;
 
-  void device_poll() {
+  void device_poll()
+  {
     // Setup camera info
+
     sensor_msgs::msg::CameraInfo camera_info = info_manager_->getCameraInfo();
     camera_info.header.frame_id = camera_frame_id_;
 
     cv::Mat camera_image;
     rclcpp::Rate rate(frame_rate_);
 
-    while (rclcpp::ok()) {
+    while (rclcpp::ok())
+    {
       auto now = this->now();
-      if (!ocam->getImages(camera_image)) {
+
+      if (!ocam->getImages(camera_image))
+      {
+
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         continue;
       }
-
-      else {
+      else
+      {
         RCLCPP_INFO_ONCE(this->get_logger(), "Success, found camera");
       }
 
-      if (camera_image_pub_.getNumSubscribers() > 0) {
-        RCLCPP_INFO(this->get_logger(), "camera_frame");
-        publishImage(camera_image, "camera_frame", now);
-      }
+      // if (camera_image_pub_.getNumSubscribers() > 0)
+      // {
+      //   publishImage(camera_image, "camera_frame", now);
+      // }
 
-      if (camera_info_pub_->get_subscription_count() > 0) {
-        RCLCPP_INFO(this->get_logger(), "camera_info");
+      // if (camera_info_pub_->get_subscription_count() > 0)
+      // {
+      //   RCLCPP_INFO(this->get_logger(), "camera_info");
 
-        publishCamInfo(camera_info, now);
-      }
+      //   publishCamInfo(camera_info, now);
+      // }
 
-      if (show_image_) {
-        // RCLCPP_INFO(this->get_logger(), "image");
-
-        cv::imshow("image", camera_image);
-        cv::waitKey(10);
-      }
+      // if (show_image_)
+      // {
+      //   cv::imshow("image", camera_image);
+      //   cv::waitKey(10);
+      // }
 
       rate.sleep();
     }
   }
 };
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   rclcpp::init(argc, argv);
   auto node = std::make_shared<oCamROS>();
   node->init_image_transport();
